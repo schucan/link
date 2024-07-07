@@ -1,0 +1,9 @@
+RewriteEngine On
+
+# Exclude specific files from rewriting
+RewriteCond %{REQUEST_URI} !^/favicon\.ico$
+RewriteCond %{REQUEST_URI} !^/index\.php$
+RewriteCond %{REQUEST_URI} !^/$
+
+# Redirect all other requests to index.php with the path as a query parameter
+RewriteRule ^(.*)$ index.php?path=$1 [L,QSA]
