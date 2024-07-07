@@ -11,6 +11,7 @@ Here are the reasons I couldn't use any other solutions:
     - The entire actual programming code is inside a single PHP file.
     - Links are kept locally in an SQLite Database.
 - Links can be configured to first show where they are going. If installed on `https://example.com`, then visiting `https://example.com/someLink` will first display a page showing the visitor the destination URL, and a "go!" button. "direct" links will still directly be redirected instead.
+- Visiting the root (`https://example.com` in the example above) without being logged in displays a list of all links with the `public` flag.
 - visits are recorded in local CSV log files for further analysis if needed.
 
 ## Installation
