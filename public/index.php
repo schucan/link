@@ -57,7 +57,6 @@ function render_header() {
         }
         form {
             margin: 20px auto;
-            background-color: #f9f9f9;
         }
         input, textarea, button {
             margin: 1vmin 0;
@@ -134,6 +133,22 @@ function render_header() {
 			-webkit-transform: translate(-50%, -50%);
 			transform: translate(-50%, -50%);
 		}
+		.footer {
+			position: fixed;
+			bottom: 0;
+			left: 0;
+			right: 0;
+			font-size: 10px;
+		}
+		.footer p {
+			background-color: #fff;
+			inline-size: ;
+			display: inline-block;
+			margin: 0;
+			padding: 10px 25px;
+			border-top-right-radius: 40px;
+			border-top-left-radius: 40px;
+		}
         @media (min-width: 600px) {
 			body {
 				font-size: 16px;
@@ -158,6 +173,7 @@ HTML;
 
 function render_footer() {
     return <<<HTML
+  <div class="footer"><p>minimal URL shortener - <a href="https://github.com/schucan/link" target="_blank">get it from GitHub</a></p></div>
 </body>
 </html>
 HTML;
@@ -232,6 +248,7 @@ if (isset($_GET['path'])) {
         }
         echo render_header();
         if ($authenticated) {
+            echo '<a href="/">Go to full list of links</a>';
             // Admin view for editing or deleting the link
             echo '<form method="POST">';
             echo '<input type="hidden" name="name" value="'.htmlspecialchars($name).'">';
