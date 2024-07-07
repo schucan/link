@@ -184,7 +184,12 @@ function logVisit($name,$url) {
 	if (!file_exists($log_file)) {
 		file_put_contents($log_file, "time;name;URL;IP;useragent;referer\n");
 	}
-	file_put_contents($log_file, date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']) . ";$name;".'"'.$url.'"'.";" . $_SERVER['REMOTE_ADDR'] . ';"' . $_SERVER['HTTP_USER_AGENT'] . '";"' . $_SERVER['HTTP_REFERER'] . '"' . "\n", FILE_APPEND);
+	file_put_contents($log_file, 
+		date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']) . 
+		";$name;".'"'.$url.'"'.";" . $_SERVER['REMOTE_ADDR'] . ';"' . 
+		((isset($_SERVER['HTTP_USER_AGENT']))?($_SERVER['HTTP_USER_AGENT']):('')) . '";"' . 
+		((isset($_SERVER['HTTP_REFERER']))?($_SERVER['HTTP_REFERER']):('')) . '"' . "\n", 
+		FILE_APPEND);
 }
 // Handle form submissions
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
@@ -199,7 +204,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Add/Edit/Delete link
     if (isset($_COOKIE[ADMIN_COOKIE_NAME]) && $_COOKIE[ADMIN_COOKIE_NAME] === ADMIN_COOKIE_VALUE) {
-        $name = preg_replace('/[^a-zA-Z0-9]/', '', $_POST['name']);
+        $name = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $_POST['name']));
+		$newname = ((isset($_POST['newname']) && ($_POST['newname']!='') && ($_POST['newname']!=$name))?(strtolower($_POST['newname'])):($name));
         $url = filter_var($_POST['url'], FILTER_SANITIZE_URL);
         $public = isset($_POST['public']) ? 1 : 0;
         $direct = isset($_POST['direct']) ? 1 : 0;
@@ -210,8 +216,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindValue(':name', $name, SQLITE3_TEXT);
             $stmt->execute();
         } else if (isset($_POST['update'])) {
-            $stmt = $db->prepare("UPDATE links SET url = :url, public = :public, direct = :direct, description = :description WHERE name = :name");
+            $stmt = $db->prepare("UPDATE links SET name = :newname, url = :url, public = :public, direct = :direct, description = :description WHERE name = :name");
             $stmt->bindValue(':name', $name, SQLITE3_TEXT);
+            $stmt->bindValue(':newname', $newname, SQLITE3_TEXT);
             $stmt->bindValue(':url', $url, SQLITE3_TEXT);
             $stmt->bindValue(':public', $public, SQLITE3_INTEGER);
             $stmt->bindValue(':direct', $direct, SQLITE3_INTEGER);
@@ -233,7 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
 // Handle link redirection and display
 if (isset($_GET['path'])) {
-    $name = preg_replace('/[^a-zA-Z0-9]/', '', $_GET['path']);
+    $name = strtolower(preg_replace('/[^a-zA-Z0-9]/', '', $_GET['path']));
     $stmt = $db->prepare("SELECT * FROM links WHERE name = :name");
     $stmt->bindValue(':name', $name, SQLITE3_TEXT);
     $result = $stmt->execute()->fetchArray(SQLITE3_ASSOC);
@@ -252,7 +259,8 @@ if (isset($_GET['path'])) {
             // Admin view for editing or deleting the link
             echo '<form method="POST">';
             echo '<input type="hidden" name="name" value="'.htmlspecialchars($name).'">';
-            echo '<input type="text" name="url" value="'.htmlspecialchars($result['url']).'" required>';
+            echo '<input type="text" name="newname" placeholder="New Name" value="'.htmlspecialchars($name).'" required>';
+			echo '<input type="text" name="url" value="'.htmlspecialchars($result['url']).'" required>';
             echo '<label><input type="checkbox" name="public" '.($result['public'] ? 'checked' : '').'> Public</label>';
             echo '<label><input type="checkbox" name="direct" '.($result['direct'] ? 'checked' : '').'> Direct</label>';
             echo '<textarea name="description" placeholder="Description">'.strip_tags($result['description']).'</textarea>';
