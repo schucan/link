@@ -18,6 +18,6 @@ Here are the reasons I couldn't use any other solutions:
 
 Just copy the `public` folder contents to your webhosting root directory and open its URL in a browser. Note: your webserver needs write access to that directory.
 
-A config file with random passwords and file names will be generated, and you will be ready to go.
+A config file named `config.php` with random passwords and file names will be generated, and you will be ready to go. You can edit the config file if you wish.
 
 **Pull requests are welcome.**
