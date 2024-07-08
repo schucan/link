@@ -49,50 +49,80 @@ function render_header() {
 	<meta name="viewport" content="width=device-width,initial-scale=1">
     <style>
         body {
-            font-size: 7vmin;
+            font-size: 16px;
             font-family: Arial, sans-serif;
             text-align: center;
-            margin: 0;
-            padding: 20px;
+            margin: 2vh auto;
+            max-width:800px;
+			position: relative;
+			height: 96vh;
         }
         form {
-            margin: 20px auto;
+            margin: 20px;
         }
         input, textarea, button {
-            margin: 1vmin 0;
-            padding: 1vmin;
-            font-size: 7vmin;
             width: 100%;
 			font-family: Arial, sans-serif;
             box-sizing:border-box;
+			margin: 10px 0;
+			padding: 10px;
+			font-size: 16px;
         }
 		input[type=checkbox] {
-			width: 7vmin;
-			height: 7vmin;
-			margin-left: 1vmin;
+			width: 16px;
+			height: 16px;
+			margin-left: 10px;
 		}
         button {
             background-color: #4CAF50;
             color: white;
             border: none;
             cursor: pointer;
-            padding: 1vmin;
-			border-radius:1vmin;
+            padding: 20px;
+			border-radius:40px;
         }
         button:hover {
             background-color: #45a049;
         }
+		.tabelle {
+			overflow-x: auto;
+			margin:20px;
+			box-sizing:border-box;
+		}
+		.tabelle td {
+			position:relative;
+		}
         table {
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
 			font-size:14px;
         }
+		table.center {
+			
+		}
+		table:first-child td {
+			border-top: 1px solid #ddd;
+		}
         th, td {
-            padding: 1vmin;
+            padding: 3px;
             text-align: left;
             border-bottom: 1px solid #ddd;
         }
+		td > a::after {
+			content: " ";
+			position: absolute;
+			top: 0;
+			bottom: 0;
+			left: 0;
+			right: 0;
+		}
+		td > a:hover::after {
+			background-color: #4caf5038;
+		}
+		tr {
+			position: relative;
+		}
         a {
             text-decoration: none;
             color: #4CAF50;
@@ -101,15 +131,15 @@ function render_header() {
 			box-shadow: 0px 1px 0px 0px #fff6af;
 			background:linear-gradient(to bottom, #ffec64 5%, #ffab23 100%);
 			background-color:#ffec64;
-			border-radius:6vmin;
+			border-radius:10px;
 			border:1px solid #ffaa22;
 			display:inline-block;
 			cursor:pointer;
 			color:#333333;
 			font-family:Arial;
-			font-size:5vmin;
+			font-size:20px;
 			font-weight:bold;
-			padding:4vmin 6vmin;
+			padding:8px 10px;
 			text-decoration:none;
 			text-shadow:0px 1px 0px #ffee66;
 			width:auto;
@@ -126,12 +156,14 @@ function render_header() {
 			color:#aaa;
 			font-weight:bold;
 		}
-		.umleitung {
+		.center {
 			position: absolute;
 			left: 50%;
-			top: 50%;
+			top: 30%;
 			-webkit-transform: translate(-50%, -50%);
 			transform: translate(-50%, -50%);
+			width: 90vw;
+			max-width: 800px;
 		}
 		.footer {
 			position: fixed;
@@ -141,29 +173,25 @@ function render_header() {
 			font-size: 10px;
 		}
 		.footer p {
-			background-color: #fff;
-			inline-size: ;
 			display: inline-block;
 			margin: 0;
-			padding: 10px 25px;
+			background-color: #000;
+			padding: 3px 15px 5px;
+			color: #fff;
 			border-top-right-radius: 40px;
 			border-top-left-radius: 40px;
+			box-shadow: 0px 2px 5px 0px black, 0px 24px 20px 19px black;
 		}
-        @media (min-width: 600px) {
-			body {
-				font-size: 16px;
-			}
-			input, textarea, button {
-				margin: 10px 0;
-				padding: 10px;
-				font-size: 16px;
-			}
-			input[type=checkbox] {
-				width: 16px;
-				height: 16px;
-				margin-left: 10px;
-			}
-			
+		.footer::before {
+			content: " ";
+			background-color: black;
+			left: 0;
+			right: 0;
+			bottom: 0;
+			position: absolute;
+			height: 6px;
+			z-index: -1;
+			box-shadow: 0px 0px 7px 0px black;
 		}
     </style>
 </head>
@@ -188,7 +216,7 @@ function logVisit($name,$url) {
 		date('Y-m-d H:i:s', $_SERVER['REQUEST_TIME']) . 
 		";$name;".'"'.$url.'"'.";" . $_SERVER['REMOTE_ADDR'] . ';"' . 
 		((isset($_SERVER['HTTP_USER_AGENT']))?($_SERVER['HTTP_USER_AGENT']):('')) . '";"' . 
-		((isset($_SERVER['HTTP_REFERER']))?($_SERVER['HTTP_REFERER']):('')) . '"' . "\n", 
+		((isset($_POST['referer']))?($_POST['referer']):((isset($_SERVER['HTTP_REFERER']))?($_SERVER['HTTP_REFERER']):(''))) . '"' . "\n", 
 		FILE_APPEND);
 }
 // Handle form submissions
@@ -247,7 +275,8 @@ if (isset($_GET['path'])) {
 
     if ($result) {
 		$authenticated = (isset($_COOKIE[ADMIN_COOKIE_NAME]) && $_COOKIE[ADMIN_COOKIE_NAME] === ADMIN_COOKIE_VALUE);
-		if (!$authenticated &&($result['direct'] || (((isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '') === ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]"))))) {
+		// Jump to destination
+		if (isset($_POST['go']) || (!$authenticated &&($result['direct'] || (((isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '') === ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]$_SERVER[REQUEST_URI]")))))) {
 			// Redirect if direct flag is set
 			logVisit($name,$result['url']);
             header('Location: '.$result['url']);
@@ -270,9 +299,9 @@ if (isset($_GET['path'])) {
             echo '<a href="'.$result['url'].'">Go to URL</a>';
         } else {
             // Display URL and description with a "Go!" button
-            echo '<div class="umleitung"><p>'.strip_tags($result['description']).'</p>';
+            echo '<div class="center"><p>'.strip_tags($result['description']).'</p>';
             echo '<p class="URL">'.htmlspecialchars($result['url']).'</p>';
-            echo '<a href="/'.htmlspecialchars($name).'"><button class="go-button">Go!</button></a></div>';
+            echo '<form method="POST"><input type="hidden" name="go" value="'.htmlspecialchars($name).'"><input type="hidden" name="referer" value="'.htmlspecialchars((isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '')).'"><input type="submit" value="Go!" class="go-button"></form></div>';
         }
         echo render_footer();
         exit;
@@ -299,8 +328,8 @@ if (isset($_GET['path'])) {
             $table .= '</tr>';$empty = false;
         }
 		if ($table != '') {
-			echo '<h1>Existing Links</h1><table><tr><th></th><th>Name</th><th>URL</th><th>Public</th><th>Direct</th><th>Description</th><th>Creation Date</th></tr>';
-			echo "$table</table>";
+			echo '<h1>Existing Links</h1><div class="tabelle"><table><tr><th></th><th>Name</th><th>URL</th><th>Public</th><th>Direct</th><th>Description</th><th>Creation Date</th></tr>';
+			echo "$table</table></div>";
 		}
 		// Admin view
         echo '<h1>Add new link</h1><form method="POST">';
@@ -314,7 +343,7 @@ if (isset($_GET['path'])) {
     } else {
         // Public view
         $result = $db->query("SELECT * FROM links WHERE public = 1");
-        echo '<table>';
+        echo '<table class="center">';
 		$empty = true;
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             echo '<tr><td><a href="/'.htmlspecialchars($row['name']).'">'.htmlspecialchars($row['name']).'</a>: '.strip_tags($row['description']).'</td></tr>';
