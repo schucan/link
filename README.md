@@ -1,4 +1,4 @@
-# link
+# link - URL Shortening Service in a single PHP file!
 
 This is the simplest possible PHP-based URL shortener for personal use.
 
@@ -15,10 +15,16 @@ Here are the reasons I couldn't use any other solutions:
 - visits are recorded in local CSV log files for further analysis if needed.
 - The page is a progressive web app (PWA): you can "save to homescreen" on your mobile to use it like a native app.
 
-## Installation
+## Super Simple Installation
 
-Just copy the `public` folder contents to your webhosting root directory and open its URL in a browser. Note: your webserver needs write access to that directory.
+Just copy the `index.php` file to your webhosting root directory and open its URL in a browser. Note: your webserver needs full write access to that directory.
 
-A config file named `config.php` with random passwords and file names will be generated, and you will be ready to go. You can edit the config file if you wish.
+The following files will be generated upon first calls:
+- A config file named `config.php` with random passwords and file names
+- A `*.db` file for your links sqlite database
+- A `.htaccess` file for all the redirection and caching magic
+- A `log-*.csv` file will be generated the first time one of your shortcut links is visited.
+
+You can adjust any of the files to your needs if you know what you are doing.
 
 **Pull requests are welcome.**
