@@ -1,4 +1,5 @@
 <?php
+$version = '00004';
 if (isset($_GET['path'])) {
 	// manifest
 	if ($_GET['path'] == 'manifest.json') {
@@ -17,7 +18,7 @@ if (isset($_GET['path'])) {
 JSON;
 		exit;
 	}
-	// CSS
+	// favicon
 	else if ($_GET['path'] == 'favicon.ico') {
 		header('Content-Type: image/x-icon');
 		// Data URI would start with "data:image/x-icon;base64,"...
@@ -39,6 +40,7 @@ body {
 }
 form {
 	margin: 20px;
+	padding-bottom: 50px;
 }
 input, textarea, button {
 	width: 100%;
@@ -47,6 +49,9 @@ input, textarea, button {
 	margin: 10px 0;
 	padding: 10px;
 	font-size: 16px;
+}
+textarea {
+	resize: vertical;
 }
 input[type=checkbox] {
 	width: 16px;
@@ -88,6 +93,13 @@ th, td {
 	padding: 3px;
 	text-align: left;
 	border-bottom: 1px solid #ddd;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	white-space: nowrap;
+	max-width: 150px;
+}
+td.name {
+	max-widht:none;
 }
 td > a::after {
 	content: " ";
@@ -145,14 +157,19 @@ a {
 	width: 90vw;
 	max-width: 800px;
 }
-.footer {
+.footer , .header{
 	position: fixed;
 	bottom: 0;
 	left: 0;
 	right: 0;
 	font-size: 10px;
 }
-.footer p {
+.header{
+	bottom: auto;
+	top:3px;
+	display:none;
+}
+.footer p, .header p{
 	display: inline-block;
 	margin: 0;
 	background-color: #000;
@@ -161,6 +178,12 @@ a {
 	border-top-right-radius: 40px;
 	border-top-left-radius: 40px;
 	box-shadow: 0px 2px 5px 0px black, 0px 24px 20px 19px black;
+}
+.header p{
+	background-color: #4CAF50;
+	padding: 5px 10px;
+	border-radius: 40px;
+	box-shadow:none;
 }
 .footer::before {
 	content: " ";
@@ -174,6 +197,42 @@ a {
 	box-shadow: 0px 0px 7px 0px black;
 }
 CSS;		
+		exit;
+	}
+		// CSS
+	else if ($_GET['path'] == 'script.js') {
+		header("Content-type: text/javascript");
+		echo <<<JAVASCRIPT
+function copyUrlToClipboard(url) {
+    // Copy the URL to the clipboard
+    navigator.clipboard.writeText(url).then(function() {
+        // URL copied successfully
+        // Find the indicator element
+        var indicator = document.getElementById("indicator");
+        // Make the indicator visible
+        indicator.style.display = "block";
+        // Hide the indicator after 3 seconds
+        setTimeout(function() {
+            indicator.style.display = "none";
+        }, 3000);
+    }).catch(function(err) {
+        prompt("Here's the short link to copy and share: ", url);
+    });
+}
+function autorun() {
+	// Add title and click event handler to each element with the "data-shortcut" attribute
+	document.querySelectorAll('[data-shortcut]').forEach(function(element) {
+	  //if (element.tagName === 'A') element.disabled = true;
+	  element.addEventListener('click', function(e) {
+		e.preventDefault(); // Prevent the default link behavior
+		const url = element.getAttribute('data-shortcut');
+		copyUrlToClipboard(url);
+	  });
+	});
+}
+if (window.addEventListener) window.addEventListener('load', autorun, false)
+else window.onload = autorun
+JAVASCRIPT;		
 		exit;
 	}
 	
@@ -201,7 +260,33 @@ if (!file_exists(CONFIG_FILE)) {
 } else {
 	require CONFIG_FILE;
 }
+if (!file_exists('.htaccess')) {
+	file_put_contents('.htaccess',<<<HTACCESS
+RewriteEngine On
 
+# Exclude specific files from rewriting
+RewriteCond %{REQUEST_URI} !^/index\.php$
+RewriteCond %{REQUEST_URI} !^/$
+
+# Redirect all other requests to index.php with the path as a query parameter
+RewriteRule ^(.*)$ index.php?path=$1 [L,QSA]
+
+<IfModule mod_expires.c>
+    ExpiresActive On
+    ExpiresByType text/css "access plus 1 year"
+	ExpiresByType application/manifest+json "access plus 1 year"
+	ExpiresByType application/json "access plus 1 year"
+	ExpiresByType image/x-icon "access plus 1 year"
+	ExpiresByType text/javascript "access plus 1 year"
+</IfModule>
+
+<IfModule mod_headers.c>
+    Header set Cache-Control "public, max-age=31536000"
+</IfModule>	
+HTACCESS);
+	echo '<p>.htaccess file was generated.</p>';
+	exit;
+}
 // Initialize database
 function init_db() {
     $db = new SQLite3(DB_FILE);
@@ -220,6 +305,7 @@ function init_db() {
 $db = init_db();
 
 function render_header() {
+	global $version;
     return <<<HTML
 <!DOCTYPE html>
 <html>
@@ -227,18 +313,21 @@ function render_header() {
 	<meta charset="UTF-8">
 	<meta name="apple-mobile-web-app-capable" content="yes" >
     <meta name="mobile-web-app-capable" content="yes">
-	<link rel="manifest" href="/manifest.json">
+	<link rel="manifest" href="/manifest.json?$version">
 	<meta name="viewport" content="width=device-width,initial-scale=1">
-    <link rel="stylesheet" href="/style.css" type="text/css" />
-	<link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <link rel="stylesheet" href="/style.css?$version" type="text/css" />
+	<link rel="icon" href="favicon.ico?$version" type="image/x-icon" />
 </head>
 <body>
+<div class="header" id="indicator"><p>Link copied to clipboard</p></div>
 HTML;
 }
 
 function render_footer() {
+	global $version;
     return <<<HTML
   <div class="footer"><p>minimal URL shortener - <a href="https://github.com/schucan/link" target="_blank">get it from GitHub</a></p></div>
+  <script async src="script.js?$version"></script>
 </body>
 </html>
 HTML;
@@ -290,13 +379,29 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindValue(':description', $description, SQLITE3_TEXT);
             $stmt->execute();
         } else {
-            $stmt = $db->prepare("INSERT INTO links (name, url, public, direct, description) VALUES (:name, :url, :public, :direct, :description)");
-            $stmt->bindValue(':name', $name, SQLITE3_TEXT);
-            $stmt->bindValue(':url', $url, SQLITE3_TEXT);
-            $stmt->bindValue(':public', $public, SQLITE3_INTEGER);
-            $stmt->bindValue(':direct', $direct, SQLITE3_INTEGER);
-            $stmt->bindValue(':description', $description, SQLITE3_TEXT);
-            $stmt->execute();
+            try {
+				$stmt = $db->prepare("INSERT INTO links (name, url, public, direct, description) VALUES (:name, :url, :public, :direct, :description)");
+				$stmt->bindValue(':name', $name, SQLITE3_TEXT);
+				$stmt->bindValue(':url', $url, SQLITE3_TEXT);
+				$stmt->bindValue(':public', $public, SQLITE3_INTEGER);
+				$stmt->bindValue(':direct', $direct, SQLITE3_INTEGER);
+				$stmt->bindValue(':description', $description, SQLITE3_TEXT);
+				if (@$stmt->execute() === false) {
+					// Check if the error code corresponds to a unique constraint violation
+					if ($db->lastErrorCode() == 19) { // SQLITE3_CONSTRAINT = 19
+						echo '<p>This Shortcut name is already in use. <a href="javascript:history.back()">Try again.</a></p>';
+						exit;
+					} else {
+						// Handle other types of errors
+						echo "<p>There was an error (" . $e->getMessage() . '. <a href="javascript:history.back()">Try again.</a></p>';
+						exit;
+					}
+				}
+			} catch (Exception $e) {
+				echo "<p>There was an error (" . $e->getMessage() . '. <a href="javascript:history.back()">Try again.</a></p>';
+				exit;
+			}
+
         }
         header('Location: /');
         exit;
@@ -321,10 +426,12 @@ if (isset($_GET['path'])) {
         }
         echo render_header();
         if ($authenticated) {
-            echo '<a href="/">Go to full list of links</a>';
+            echo '<p><a href="/">Go to full list of links</a></p>';
             // Admin view for editing or deleting the link
             echo '<form method="POST">';
-            echo '<input type="hidden" name="name" value="'.htmlspecialchars($name).'">';
+            echo '<button type="button" data-shortcut="' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]/" .htmlspecialchars($result['name'])) .'" title="Copy Shortcut">Copy Shortcut</button>';
+            echo '<h1>Edit or Delete this Link</h1>';
+			echo '<input type="hidden" name="name" value="'.htmlspecialchars($name).'">';
             echo '<input type="text" name="newname" placeholder="New Name" value="'.htmlspecialchars($name).'" required>';
 			echo '<input type="text" name="url" value="'.htmlspecialchars($result['url']).'" required>';
             echo '<label><input type="checkbox" name="public" '.($result['public'] ? 'checked' : '').'> Public</label>';
@@ -332,8 +439,8 @@ if (isset($_GET['path'])) {
             echo '<textarea name="description" placeholder="Description">'.strip_tags($result['description']).'</textarea>';
             echo '<button type="submit" name="update">Update</button>';
             echo '<button type="submit" name="delete">Delete</button>';
+            echo '<p><a href="'.$result['url'].'">Go to URL directly</a></p>';
             echo '</form>';
-            echo '<a href="'.$result['url'].'">Go to URL</a>';
         } else {
             // Display URL and description with a "Go!" button
             echo '<div class="center"><p>'.strip_tags($result['description']).'</p>';
@@ -355,12 +462,12 @@ if (isset($_GET['path'])) {
         $table = '';
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             $table .= '<tr>';
-            $table .= '<td><a title="Edit or Delete" href="/'.htmlspecialchars($row['name']).'">🖊</a></td>';
-            $table .= '<td><a title="Edit or Delete" href="/'.htmlspecialchars($row['name']).'">'.htmlspecialchars($row['name']).'</a></td>';
-            $table .= '<td><a title="Visit directly" href="'.$row['url'].'" target="_blank">'.htmlspecialchars($row['url']).'</td>';
+            $table .= '<td><a title="Edit or Delete" href="/'.htmlspecialchars($row['name']).'">✏️</a></td>';
+            $table .= '<td class="name"><a title="Copy Shortcut" data-shortcut="' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]/" .htmlspecialchars($row['name'])) .'" href="/'.htmlspecialchars($row['name']).'">⤴️ '.htmlspecialchars($row['name']).'</a></td>';
+            $table .= '<td><a title="Visit directly" href="'.$row['url'].'" target="_blank">➡️ '.htmlspecialchars($row['url']).'</a></td>';
             $table .= '<td>'.($row['public'] ? 'Yes' : 'No').'</td>';
             $table .= '<td>'.($row['direct'] ? 'Yes' : 'No').'</td>';
-            $table .= '<td>'.strip_tags($row['description']).'</td>';
+            $table .= '<td><a  title="Edit or delete: '.strip_tags($row['description']).'" href="/'.htmlspecialchars($row['name']).'">'.strip_tags($row['description']).'</a></td>';
             $table .= '<td>'.htmlspecialchars($row['creation_date']).'</td>';
             $table .= '</tr>';$empty = false;
         }
@@ -369,7 +476,7 @@ if (isset($_GET['path'])) {
 			echo "$table</table></div>";
 		}
 		// Admin view
-        echo '<h1>Add new link</h1><form method="POST">';
+        echo '<h1>Add new Link</h1><form method="POST">';
         echo '<input type="text" name="name" placeholder="Name" required>';
         echo '<input type="url" name="url" placeholder="URL" required>';
         echo '<label><input type="checkbox" name="public"> Public</label>';
