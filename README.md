@@ -14,6 +14,10 @@ Here are the reasons I couldn't use any other solutions:
 - Visiting the root (`https://example.com` in the example above) without being logged in displays a list of all links with the `public` flag.
 - visits are recorded in local CSV log files for further analysis if needed.
 - The page is a progressive web app (PWA): you can "save to homescreen" on your mobile to use it like a native app.
+- The bookmarklet uses the following GET URL parameters to pre-populate the form for a new link:
+    - `name` for the link name (the shortcut)
+    - `url` for the target URL
+    - `description` for the description
 
 ## Super Simple Installation
 
