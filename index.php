@@ -220,6 +220,9 @@ function copyUrlToClipboard(url) {
     });
 }
 function autorun() {
+	try {
+		document.forms[0].name.focus();
+	} catch {}
 	// Add title and click event handler to each element with the "data-shortcut" attribute
 	document.querySelectorAll('[data-shortcut]').forEach(function(element) {
 	  //if (element.tagName === 'A') element.disabled = true;
@@ -332,7 +335,9 @@ function render_footer() {
 </html>
 HTML;
 }
-
+function sanitize_input($data) {
+	return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
+}
 function logVisit($name,$url) {
 	$log_file = 'log-'.date('Y-m') . '.csv';
 	if (!file_exists($log_file)) {
@@ -429,11 +434,11 @@ if (isset($_GET['path'])) {
             echo '<p><a href="/">Go to full list of links</a></p>';
             // Admin view for editing or deleting the link
             echo '<form method="POST">';
-            echo '<button type="button" data-shortcut="' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]/" .htmlspecialchars($result['name'])) .'" title="Copy Shortcut">Copy Shortcut</button>';
+            echo '<button type="button" data-shortcut="' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]/" .sanitize_input($result['name'])) .'" title="Copy Shortcut">Copy Shortcut</button>';
             echo '<h1>Edit or Delete this Link</h1>';
-			echo '<input type="hidden" name="name" value="'.htmlspecialchars($name).'">';
-            echo '<input type="text" name="newname" placeholder="New Name" value="'.htmlspecialchars($name).'" required>';
-			echo '<input type="text" name="url" value="'.htmlspecialchars($result['url']).'" required>';
+			echo '<input type="hidden" name="name" value="'.sanitize_input($name).'">';
+            echo '<input type="text" name="newname" placeholder="New Name" value="'.sanitize_input($name).'" required>';
+			echo '<input type="text" name="url" value="'.sanitize_input($result['url']).'" required>';
             echo '<label><input type="checkbox" name="public" '.($result['public'] ? 'checked' : '').'> Public</label>';
             echo '<label><input type="checkbox" name="direct" '.($result['direct'] ? 'checked' : '').'> Direct</label>';
             echo '<textarea name="description" placeholder="Description">'.strip_tags($result['description']).'</textarea>';
@@ -444,8 +449,8 @@ if (isset($_GET['path'])) {
         } else {
             // Display URL and description with a "Go!" button
             echo '<div class="center"><p>'.strip_tags($result['description']).'</p>';
-            echo '<p class="URL">'.htmlspecialchars($result['url']).'</p>';
-            echo '<form method="POST"><input type="hidden" name="go" value="'.htmlspecialchars($name).'"><input type="hidden" name="referer" value="'.htmlspecialchars((isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '')).'"><input type="submit" value="Go!" class="go-button"></form></div>';
+            echo '<p class="URL">'.sanitize_input($result['url']).'</p>';
+            echo '<form method="POST"><input type="hidden" name="go" value="'.sanitize_input($name).'"><input type="hidden" name="referer" value="'.sanitize_input((isset($_SERVER['HTTP_REFERER']) ? $_SERVER['HTTP_REFERER'] : '')).'"><input type="submit" value="Go!" class="go-button"></form></div>';
         }
         echo render_footer();
         exit;
@@ -458,17 +463,17 @@ if (isset($_GET['path'])) {
     if (isset($_COOKIE[ADMIN_COOKIE_NAME]) && $_COOKIE[ADMIN_COOKIE_NAME] === ADMIN_COOKIE_VALUE) {
         
         // List all links
-        $result = $db->query("SELECT * FROM links");
+        $result = $db->query("SELECT * FROM links ORDER BY name asc");
         $table = '';
         while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
             $table .= '<tr>';
-            $table .= '<td><a title="Edit or Delete" href="/'.htmlspecialchars($row['name']).'">✏️</a></td>';
-            $table .= '<td class="name"><a title="Copy Shortcut" data-shortcut="' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]/" .htmlspecialchars($row['name'])) .'" href="/'.htmlspecialchars($row['name']).'">⤴️ '.htmlspecialchars($row['name']).'</a></td>';
-            $table .= '<td><a title="Visit directly" href="'.$row['url'].'" target="_blank">➡️ '.htmlspecialchars($row['url']).'</a></td>';
+            $table .= '<td><a title="Edit or Delete" href="/'.sanitize_input($row['name']).'">✏️</a></td>';
+            $table .= '<td class="name"><a title="Copy Shortcut" data-shortcut="' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]/" .sanitize_input($row['name'])) .'" href="/'.sanitize_input($row['name']).'">⤴️ '.sanitize_input($row['name']).'</a></td>';
+            $table .= '<td><a title="Visit directly" href="'.$row['url'].'" target="_blank">➡️ '.sanitize_input($row['url']).'</a></td>';
             $table .= '<td>'.($row['public'] ? 'Yes' : 'No').'</td>';
             $table .= '<td>'.($row['direct'] ? 'Yes' : 'No').'</td>';
-            $table .= '<td><a  title="Edit or delete: '.strip_tags($row['description']).'" href="/'.htmlspecialchars($row['name']).'">'.strip_tags($row['description']).'</a></td>';
-            $table .= '<td>'.htmlspecialchars($row['creation_date']).'</td>';
+            $table .= '<td><a  title="Edit or delete: '.strip_tags($row['description']).'" href="/'.sanitize_input($row['name']).'">'.strip_tags($row['description']).'</a></td>';
+            $table .= '<td>'.sanitize_input($row['creation_date']).'</td>';
             $table .= '</tr>';$empty = false;
         }
 		if ($table != '') {
@@ -476,14 +481,19 @@ if (isset($_GET['path'])) {
 			echo "$table</table></div>";
 		}
 		// Admin view
-        echo '<h1>Add new Link</h1><form method="POST">';
-        echo '<input type="text" name="name" placeholder="Name" required>';
-        echo '<input type="url" name="url" placeholder="URL" required>';
-        echo '<label><input type="checkbox" name="public"> Public</label>';
-        echo '<label><input type="checkbox" name="direct" checked> Direct</label>';
-        echo '<textarea name="description" placeholder="Description"></textarea>';
-        echo '<button type="submit">Add Link</button>';
-        echo '</form>';
+        $url = isset($_GET['url']) ? sanitize_input($_GET['url']) : '';
+		$name = isset($_GET['name']) ? sanitize_input($_GET['name']) : '';
+		$description = isset($_GET['description']) ? strip_tags($_GET['description']) : '';
+		echo '<h1>Add new Link</h1><form method="POST">';
+		echo '<input type="text" name="name" placeholder="Name" value="' . $name . '" required>';
+		echo '<input type="url" name="url" placeholder="URL" value="' . $url . '" required>';
+		echo '<label><input type="checkbox" name="public"> Public</label>';
+		echo '<label><input type="checkbox" name="direct" checked> Direct</label>';
+		echo '<textarea name="description" placeholder="Description">' . $description . '</textarea>';
+		echo '<button type="submit">Add Link</button>';
+		echo '<p>Drag this Bookmarklet to your Toolbar to save pages directly: <a href="javascript:(function(){var u=encodeURIComponent,w=window.location.href,d=document,q=d.querySelector(\'meta[name=description]\'),n=(t)=>{var m=t.match(/\\b\\w+\\b/);return m?m[0]:\'\'};window.location.href=\''. ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]").'?url=\'+u(w)+\'&description=\'+u(q?q.content:d.title)+\'&name=\'+u(n(d.title))})()">Save Link</a></p>';
+
+            echo '</form>';
     } else {
 		// Login screen
 		if (isset($_GET['login'])) {
@@ -499,7 +509,7 @@ if (isset($_GET['path'])) {
 			echo '<table class="center">';
 			$empty = true;
 			while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-				echo '<tr><td><a href="/'.htmlspecialchars($row['name']).'">'.htmlspecialchars($row['name']).'</a>: '.strip_tags($row['description']).'</td></tr>';
+				echo '<tr><td><a href="/'.sanitize_input($row['name']).'">'.sanitize_input($row['name']).'</a>: '.strip_tags($row['description']).'</td></tr>';
 				$empty = false;
 			}
 			if ($empty) {
