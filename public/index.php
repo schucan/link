@@ -1,4 +1,176 @@
 <?php
+if (isset($_GET['path'])) {
+	// manifest
+	if ($_GET['path'] == 'manifest.json') {
+		header('Content-Type: application/json');
+		echo <<<JSON
+{
+ "name": "Link",
+ "short_name": "Link",
+ "scope": "/",
+ "start_url": "/?login",
+ "display": "standalone",
+ "description": "URL Shortener",
+ "theme_color": "#4CAF50",
+ "background_color": "#ffffff"
+}
+JSON;
+		exit;
+	}
+	// CSS
+	else if ($_GET['path'] == 'style.css') {
+		header("Content-type: text/css");
+		echo <<<CSS
+body {
+	font-size: 16px;
+	font-family: Arial, sans-serif;
+	text-align: center;
+	margin: 2vh auto;
+	max-width:800px;
+	position: relative;
+	height: 96vh;
+}
+form {
+	margin: 20px;
+}
+input, textarea, button {
+	width: 100%;
+	font-family: Arial, sans-serif;
+	box-sizing:border-box;
+	margin: 10px 0;
+	padding: 10px;
+	font-size: 16px;
+}
+input[type=checkbox] {
+	width: 16px;
+	height: 16px;
+	margin-left: 10px;
+}
+button {
+	background-color: #4CAF50;
+	color: white;
+	border: none;
+	cursor: pointer;
+	padding: 20px;
+	border-radius:40px;
+}
+button:hover {
+	background-color: #45a049;
+}
+.tabelle {
+	overflow-x: auto;
+	margin:20px;
+	box-sizing:border-box;
+}
+.tabelle td {
+	position:relative;
+}
+table {
+	width: 100%;
+	border-collapse: collapse;
+	margin: 20px 0;
+	font-size:14px;
+}
+table.center {
+	
+}
+table:first-child td {
+	border-top: 1px solid #ddd;
+}
+th, td {
+	padding: 3px;
+	text-align: left;
+	border-bottom: 1px solid #ddd;
+}
+td > a::after {
+	content: " ";
+	position: absolute;
+	top: 0;
+	bottom: 0;
+	left: 0;
+	right: 0;
+}
+td > a:hover::after {
+	background-color: #4caf5038;
+}
+tr {
+	position: relative;
+}
+a {
+	text-decoration: none;
+	color: #4CAF50;
+}
+.go-button {
+	box-shadow: 0px 1px 0px 0px #fff6af;
+	background:linear-gradient(to bottom, #ffec64 5%, #ffab23 100%);
+	background-color:#ffec64;
+	border-radius:10px;
+	border:1px solid #ffaa22;
+	display:inline-block;
+	cursor:pointer;
+	color:#333333;
+	font-family:Arial;
+	font-size:20px;
+	font-weight:bold;
+	padding:8px 10px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #ffee66;
+	width:auto;
+}
+.go-button:hover {
+	background:linear-gradient(to bottom, #ffab23 5%, #ffec64 100%);
+	background-color:#ffab23;
+}
+.go-button:active {
+	position:relative;
+	top:1px;
+}
+.URL {
+	color:#aaa;
+	font-weight:bold;
+}
+.center {
+	position: absolute;
+	left: 50%;
+	top: 30%;
+	-webkit-transform: translate(-50%, -50%);
+	transform: translate(-50%, -50%);
+	width: 90vw;
+	max-width: 800px;
+}
+.footer {
+	position: fixed;
+	bottom: 0;
+	left: 0;
+	right: 0;
+	font-size: 10px;
+}
+.footer p {
+	display: inline-block;
+	margin: 0;
+	background-color: #000;
+	padding: 3px 15px 5px;
+	color: #fff;
+	border-top-right-radius: 40px;
+	border-top-left-radius: 40px;
+	box-shadow: 0px 2px 5px 0px black, 0px 24px 20px 19px black;
+}
+.footer::before {
+	content: " ";
+	background-color: black;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	position: absolute;
+	height: 6px;
+	z-index: -1;
+	box-shadow: 0px 0px 7px 0px black;
+}
+CSS;		
+		exit;
+	}
+	
+}
 // Configuration
 define('CONFIG_FILE', 'config.php');
 
@@ -46,154 +218,11 @@ function render_header() {
 <html>
 <head>
 	<meta charset="UTF-8">
+	<meta name="apple-mobile-web-app-capable" content="yes" >
+    <meta name="mobile-web-app-capable" content="yes">
+	<link rel="manifest" href="/manifest.json">
 	<meta name="viewport" content="width=device-width,initial-scale=1">
-    <style>
-        body {
-            font-size: 16px;
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 2vh auto;
-            max-width:800px;
-			position: relative;
-			height: 96vh;
-        }
-        form {
-            margin: 20px;
-        }
-        input, textarea, button {
-            width: 100%;
-			font-family: Arial, sans-serif;
-            box-sizing:border-box;
-			margin: 10px 0;
-			padding: 10px;
-			font-size: 16px;
-        }
-		input[type=checkbox] {
-			width: 16px;
-			height: 16px;
-			margin-left: 10px;
-		}
-        button {
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            cursor: pointer;
-            padding: 20px;
-			border-radius:40px;
-        }
-        button:hover {
-            background-color: #45a049;
-        }
-		.tabelle {
-			overflow-x: auto;
-			margin:20px;
-			box-sizing:border-box;
-		}
-		.tabelle td {
-			position:relative;
-		}
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            margin: 20px 0;
-			font-size:14px;
-        }
-		table.center {
-			
-		}
-		table:first-child td {
-			border-top: 1px solid #ddd;
-		}
-        th, td {
-            padding: 3px;
-            text-align: left;
-            border-bottom: 1px solid #ddd;
-        }
-		td > a::after {
-			content: " ";
-			position: absolute;
-			top: 0;
-			bottom: 0;
-			left: 0;
-			right: 0;
-		}
-		td > a:hover::after {
-			background-color: #4caf5038;
-		}
-		tr {
-			position: relative;
-		}
-        a {
-            text-decoration: none;
-            color: #4CAF50;
-        }
-		.go-button {
-			box-shadow: 0px 1px 0px 0px #fff6af;
-			background:linear-gradient(to bottom, #ffec64 5%, #ffab23 100%);
-			background-color:#ffec64;
-			border-radius:10px;
-			border:1px solid #ffaa22;
-			display:inline-block;
-			cursor:pointer;
-			color:#333333;
-			font-family:Arial;
-			font-size:20px;
-			font-weight:bold;
-			padding:8px 10px;
-			text-decoration:none;
-			text-shadow:0px 1px 0px #ffee66;
-			width:auto;
-		}
-		.go-button:hover {
-			background:linear-gradient(to bottom, #ffab23 5%, #ffec64 100%);
-			background-color:#ffab23;
-		}
-		.go-button:active {
-			position:relative;
-			top:1px;
-		}
-		.URL {
-			color:#aaa;
-			font-weight:bold;
-		}
-		.center {
-			position: absolute;
-			left: 50%;
-			top: 30%;
-			-webkit-transform: translate(-50%, -50%);
-			transform: translate(-50%, -50%);
-			width: 90vw;
-			max-width: 800px;
-		}
-		.footer {
-			position: fixed;
-			bottom: 0;
-			left: 0;
-			right: 0;
-			font-size: 10px;
-		}
-		.footer p {
-			display: inline-block;
-			margin: 0;
-			background-color: #000;
-			padding: 3px 15px 5px;
-			color: #fff;
-			border-top-right-radius: 40px;
-			border-top-left-radius: 40px;
-			box-shadow: 0px 2px 5px 0px black, 0px 24px 20px 19px black;
-		}
-		.footer::before {
-			content: " ";
-			background-color: black;
-			left: 0;
-			right: 0;
-			bottom: 0;
-			position: absolute;
-			height: 6px;
-			z-index: -1;
-			box-shadow: 0px 0px 7px 0px black;
-		}
-    </style>
+    <link rel="stylesheet" href="/style.css" type="text/css" />
 </head>
 <body>
 HTML;
@@ -341,18 +370,7 @@ if (isset($_GET['path'])) {
         echo '<button type="submit">Add Link</button>';
         echo '</form>';
     } else {
-        // Public view
-        $result = $db->query("SELECT * FROM links WHERE public = 1");
-        echo '<table class="center">';
-		$empty = true;
-        while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-            echo '<tr><td><a href="/'.htmlspecialchars($row['name']).'">'.htmlspecialchars($row['name']).'</a>: '.strip_tags($row['description']).'</td></tr>';
-			$empty = false;
-        }
-		if ($empty) {
-			echo "<tr><td>This is a private URL shortening service.</td></tr>";
-		}
-        echo '</table>';
+		// Login screen
 		if (isset($_GET['login'])) {
 			// Login form
 			
@@ -360,6 +378,19 @@ if (isset($_GET['path'])) {
 			echo '<input type="password" name="password" placeholder="Password" required>';
 			echo '<button type="submit">Login</button>';
 			echo '</form>';
+		} else {
+			// Public view
+			$result = $db->query("SELECT * FROM links WHERE public = 1");
+			echo '<table class="center">';
+			$empty = true;
+			while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
+				echo '<tr><td><a href="/'.htmlspecialchars($row['name']).'">'.htmlspecialchars($row['name']).'</a>: '.strip_tags($row['description']).'</td></tr>';
+				$empty = false;
+			}
+			if ($empty) {
+				echo "<tr><td>This is a private URL shortening service.</td></tr>";
+			}
+			echo '</table>';
 		}
     }
     echo render_footer();
