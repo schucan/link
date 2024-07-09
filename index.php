@@ -1,6 +1,18 @@
 <?php
 $version = '00005';
 if (isset($_GET['path'])) {
+	// serve Log file
+	$filePath = $_GET['path'];
+    // Validate and serve the file if it exists
+    if (preg_match('/^log-\d{4}-\d{2}\.csv$/', $_GET['path']) && file_exists($_GET['path'])) {
+        // Set the correct headers to serve a CSV file
+        header('Content-Type: text/csv');
+        header('Content-Disposition: attachment; filename="' . basename($_GET['path']) . '"');
+
+        // Serve the file and exit
+        readfile($_GET['path']);
+        exit;
+    } 
 	// manifest
 	if ($_GET['path'] == 'manifest.json') {
 		header('Content-Type: application/json');
@@ -365,6 +377,29 @@ HTML;
 function sanitize_input($data) {
 	return htmlspecialchars(trim($data), ENT_QUOTES, 'UTF-8');
 }
+function getLogFileList() {
+	// Get all files in the current directory
+	$files = glob("log-*.csv");
+
+	// Initialize the output variable
+	$output = '';
+
+	// Check if there are any log files
+	if (!empty($files)) {
+		$output .= "Visitor Statistics: ";
+
+		// Create links for each log file
+		foreach ($files as $file) {
+			$filename = basename($file, ".csv");
+			$date = str_replace("log-", "", $filename);
+			$output .= "<a href=\"/$filename.csv\">$date</a> ";
+		}
+	}
+	if ($output != '') {
+		$output = "<p>$output</p>";
+	}
+	return $output;
+}
 function logVisit($name,$url) {
 	$log_file = 'log-'.date('Y-m') . '.csv';
 	if (!file_exists($log_file)) {
@@ -519,8 +554,8 @@ if (isset($_GET['path'])) {
 		echo '<textarea name="description" placeholder="Description">' . $description . '</textarea>';
 		echo '<button type="submit">Add Link</button>';
 		echo '<p>Drag this Bookmarklet to<br>your Toolbar to save pages directly:<br><a href="javascript:(function(){var u=encodeURIComponent,w=window.location.href,d=document,q=d.querySelector(\'meta[name=description]\'),n=(t)=>{var m=t.match(/\\b\\w+\\b/);return m?m[0]:\'\'};window.location.href=\''. ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]").'?url=\'+u(w)+\'&description=\'+u(q?q.content:d.title)+\'&name=\'+u(n(d.title))})()">Save Link</a></p>';
-
-            echo '</form>';
+		echo getLogFileList();
+        echo '</form>';
     } else {
 		// Login screen
 		if (isset($_GET['login'])) {
