@@ -539,7 +539,7 @@ if (isset($_GET['path'])) {
             $table .= '</tr>';$empty = false;
         }
 		if ($table != '') {
-			echo '<h1>Existing Links</h1><div class="tabelle"><table><tr><th></th><th>Name</th><th>Link</th><th>Description</th><th>Public</th><th>Direct</th><th>Creation Date</th></tr>';
+			echo '<h1>Existing Links</h1><div class="tabelle"><table><tr><th></th><th>Name</th><th>Description</th><th>Link</th><th>Public</th><th>Direct</th><th>Creation Date</th></tr>';
 			echo "$table</table></div>";
 		}
 		// Admin view
