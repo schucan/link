@@ -1,5 +1,5 @@
 <?php
-$version = '00004';
+$version = '00005';
 if (isset($_GET['path'])) {
 	// manifest
 	if ($_GET['path'] == 'manifest.json') {
@@ -196,6 +196,15 @@ a {
 	z-index: -1;
 	box-shadow: 0px 0px 7px 0px black;
 }
+body.dark {
+  background-color:#000;
+  color: #d8eed9;
+}
+
+body.dark textarea, body.dark input:not(.go-button) {
+  background-color: #132b13;
+  color: #d8eed9;
+}
 CSS;		
 		exit;
 	}
@@ -235,6 +244,24 @@ function autorun() {
 }
 if (window.addEventListener) window.addEventListener('load', autorun, false)
 else window.onload = autorun
+
+// Check if dark mode is enabled
+if (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  // Add class to the body element
+  document.body.classList.add('dark');
+}
+
+// Listen for changes in the color scheme preference
+window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', (event) => {
+  if (event.matches) {
+    // Dark mode is enabled
+    document.body.classList.add('dark');
+  } else {
+    // Dark mode is disabled
+    document.body.classList.remove('dark');
+  }
+});
+
 JAVASCRIPT;		
 		exit;
 	}
@@ -469,15 +496,15 @@ if (isset($_GET['path'])) {
             $table .= '<tr>';
             $table .= '<td><a title="Edit or Delete" href="/'.sanitize_input($row['name']).'">✏️</a></td>';
             $table .= '<td class="name"><a title="Copy Shortcut" data-shortcut="' . ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]/" .sanitize_input($row['name'])) .'" href="/'.sanitize_input($row['name']).'">⤴️ '.sanitize_input($row['name']).'</a></td>';
+            $table .= '<td><a  title="Edit or delete: '.strip_tags($row['description']).'" href="/'.sanitize_input($row['name']).'">'.strip_tags($row['description']).'</a></td>';
             $table .= '<td><a title="Visit directly" href="'.$row['url'].'" target="_blank">➡️ '.sanitize_input($row['url']).'</a></td>';
             $table .= '<td>'.($row['public'] ? 'Yes' : 'No').'</td>';
             $table .= '<td>'.($row['direct'] ? 'Yes' : 'No').'</td>';
-            $table .= '<td><a  title="Edit or delete: '.strip_tags($row['description']).'" href="/'.sanitize_input($row['name']).'">'.strip_tags($row['description']).'</a></td>';
             $table .= '<td>'.sanitize_input($row['creation_date']).'</td>';
             $table .= '</tr>';$empty = false;
         }
 		if ($table != '') {
-			echo '<h1>Existing Links</h1><div class="tabelle"><table><tr><th></th><th>Name</th><th>URL</th><th>Public</th><th>Direct</th><th>Description</th><th>Creation Date</th></tr>';
+			echo '<h1>Existing Links</h1><div class="tabelle"><table><tr><th></th><th>Name</th><th>Link</th><th>Description</th><th>Public</th><th>Direct</th><th>Creation Date</th></tr>';
 			echo "$table</table></div>";
 		}
 		// Admin view
@@ -491,7 +518,7 @@ if (isset($_GET['path'])) {
 		echo '<label><input type="checkbox" name="direct" checked> Direct</label>';
 		echo '<textarea name="description" placeholder="Description">' . $description . '</textarea>';
 		echo '<button type="submit">Add Link</button>';
-		echo '<p>Drag this Bookmarklet to your Toolbar to save pages directly: <a href="javascript:(function(){var u=encodeURIComponent,w=window.location.href,d=document,q=d.querySelector(\'meta[name=description]\'),n=(t)=>{var m=t.match(/\\b\\w+\\b/);return m?m[0]:\'\'};window.location.href=\''. ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]").'?url=\'+u(w)+\'&description=\'+u(q?q.content:d.title)+\'&name=\'+u(n(d.title))})()">Save Link</a></p>';
+		echo '<p>Drag this Bookmarklet to<br>your Toolbar to save pages directly:<br><a href="javascript:(function(){var u=encodeURIComponent,w=window.location.href,d=document,q=d.querySelector(\'meta[name=description]\'),n=(t)=>{var m=t.match(/\\b\\w+\\b/);return m?m[0]:\'\'};window.location.href=\''. ((isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on' ? "https" : "http") . "://$_SERVER[HTTP_HOST]").'?url=\'+u(w)+\'&description=\'+u(q?q.content:d.title)+\'&name=\'+u(n(d.title))})()">Save Link</a></p>';
 
             echo '</form>';
     } else {
