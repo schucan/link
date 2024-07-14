@@ -12,7 +12,7 @@ if (isset($_GET['path'])) {
         // Serve the file and exit
         readfile($_GET['path']);
         exit;
-    } 
+    }
 	// manifest
 	if ($_GET['path'] == 'manifest.json') {
 		header('Content-Type: application/json');
@@ -301,6 +301,13 @@ if (!file_exists(CONFIG_FILE)) {
 	
 } else {
 	require CONFIG_FILE;
+} 
+// links db
+if (isset($_GET['path']) && ($_GET['path'] == 'links.db')) {
+	header('Content-Type: application/x-sqlite3');
+	header('Content-Disposition: attachment; filename="links-' . date('Y-m-d-H-i-s', $_SERVER['REQUEST_TIME']) . '.db"');
+	readfile(DB_FILE);
+	exit;
 }
 if (!file_exists('.htaccess')) {
 	file_put_contents('.htaccess',<<<HTACCESS
@@ -323,6 +330,11 @@ RewriteRule ^(.*)$ index.php?path=$1 [L,QSA]
 </IfModule>
 
 <IfModule mod_headers.c>
+    # Prevent search engines from indexing or following links
+    Header set X-Robots-Tag "noindex, nofollow"
+    # Prevent Referer header from being sent
+    Header set Referrer-Policy "no-referrer"
+	# Cache settings
     Header set Cache-Control "public, max-age=31536000"
 </IfModule>	
 HTACCESS);
@@ -394,9 +406,12 @@ function getLogFileList() {
 			$date = str_replace("log-", "", $filename);
 			$output .= "<a href=\"/$filename.csv\">$date</a> ";
 		}
+		$output .= '(<a href="/links.db">links DB</a>)';
 	}
 	if ($output != '') {
 		$output = "<p>$output</p>";
+	} else {
+		$output = '<p>Export <a href="/links.db">links DB</a></p>';
 	}
 	return $output;
 }
