@@ -432,7 +432,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Login form
     if (isset($_POST['password'])) {
         if (password_verify($_POST['password'], ADMIN_PASSWORD_HASH)) {
-            setcookie(ADMIN_COOKIE_NAME, ADMIN_COOKIE_VALUE, time() + (86400 * 30), "/", "", true, true);
+            setcookie(ADMIN_COOKIE_NAME, ADMIN_COOKIE_VALUE, time() + (86400 * 30 * 365), "/", "", true, true);
         }
         header('Location: /');
         exit;
