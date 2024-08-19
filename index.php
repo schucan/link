@@ -113,6 +113,7 @@ th, td {
 td.name {
 	max-widht:none;
 }
+.link > a::after,
 td > a::after {
 	content: " ";
 	position: absolute;
@@ -121,11 +122,12 @@ td > a::after {
 	left: 0;
 	right: 0;
 }
-td > a:hover::after {
+td > a:hover::after, .link > a:hover::after {
 	background-color: #4caf5038;
 }
-tr {
+tr,.link {
 	position: relative;
+	text-align: left;
 }
 a {
 	text-decoration: none;
@@ -411,7 +413,7 @@ function getLogFileList() {
 	if ($output != '') {
 		$output = "<p>$output</p>";
 	} else {
-		$output = '<p>Export <a href="/links.db">links DB</a></p>';
+		$output = '<p>Export <a href="/links.db">links DB</a>.</p>';
 	}
 	return $output;
 }
@@ -432,7 +434,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Login form
     if (isset($_POST['password'])) {
         if (password_verify($_POST['password'], ADMIN_PASSWORD_HASH)) {
-            setcookie(ADMIN_COOKIE_NAME, ADMIN_COOKIE_VALUE, time() + (86400 * 30 * 365), "/", "", true, true);
+            setcookie(ADMIN_COOKIE_NAME, ADMIN_COOKIE_VALUE, time() + (86400 * 30), "/", "", true, true);
         }
         header('Location: /');
         exit;
@@ -583,16 +585,16 @@ if (isset($_GET['path'])) {
 		} else {
 			// Public view
 			$result = $db->query("SELECT * FROM links WHERE public = 1");
-			echo '<table class="center">';
+			echo '<div class="center">';
 			$empty = true;
 			while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-				echo '<tr><td><a href="/'.sanitize_input($row['name']).'">'.sanitize_input($row['name']).'</a>: '.strip_tags($row['description']).'</td></tr>';
+				echo '<div class="link"><a href="/'.sanitize_input($row['name']).'">'.sanitize_input($row['name']).'</a>: '.strip_tags($row['description']).'</div>';
 				$empty = false;
 			}
 			if ($empty) {
 				echo "<tr><td>This is a private URL shortening service.</td></tr>";
 			}
-			echo '</table>';
+			echo '</div>';
 		}
     }
     echo render_footer();
