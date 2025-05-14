@@ -1,5 +1,5 @@
 <?php
-$version = '00005';
+$version = '9';
 if (isset($_GET['path'])) {
 	// serve Log file
 	$filePath = $_GET['path'];
@@ -95,9 +95,6 @@ table {
 	margin: 20px 0;
 	font-size:14px;
 }
-table.center {
-	
-}
 table:first-child td {
 	border-top: 1px solid #ddd;
 }
@@ -163,14 +160,19 @@ a {
 	font-weight:bold;
 }
 .center {
-	position: absolute;
-	left: 50%;
-	top: 30%;
-	-webkit-transform: translate(-50%, -50%);
-	transform: translate(-50%, -50%);
+	margin: 10px auto;
 	width: 90vw;
 	max-width: 800px;
 }
+.go input[type=text] {
+  border: none;
+  background-color: transparent !important;
+  text-align: center;
+}
+.go input:focus {
+  outline: none;
+}
+
 .footer , .header{
 	position: fixed;
 	bottom: 0;
@@ -255,6 +257,9 @@ function autorun() {
 		copyUrlToClipboard(url);
 	  });
 	});
+	try {
+		document.forms[0].path.focus();
+	} catch {}
 }
 if (window.addEventListener) window.addEventListener('load', autorun, false)
 else window.onload = autorun
@@ -408,12 +413,12 @@ function getLogFileList() {
 			$date = str_replace("log-", "", $filename);
 			$output .= "<a href=\"/$filename.csv\">$date</a> ";
 		}
-		$output .= '(<a href="/links.db">links DB</a>)';
+		$output .= '(<a href="/links.db?' . rand(0,1000000) . '">links DB</a>)';
 	}
 	if ($output != '') {
 		$output = "<p>$output</p>";
 	} else {
-		$output = '<p>Export <a href="/links.db">links DB</a>.</p>';
+		$output = '<p>Export <a href="/links.db?' . rand(0,1000000) . '">links DB</a>.</p>';
 	}
 	return $output;
 }
@@ -584,17 +589,21 @@ if (isset($_GET['path'])) {
 			echo '</form>';
 		} else {
 			// Public view
+			echo <<<HTML
+<form class="go" method="get">
+	<input type="text" name="path" placeholder="link name">
+	<button class="go-button" type="submit">Go!</button>
+</form>
+HTML;			
 			$result = $db->query("SELECT * FROM links WHERE public = 1");
+			$public_table = '';
 			echo '<div class="center">';
-			$empty = true;
 			while ($row = $result->fetchArray(SQLITE3_ASSOC)) {
-				echo '<div class="link"><a href="/'.sanitize_input($row['name']).'">'.sanitize_input($row['name']).'</a>: '.strip_tags($row['description']).'</div>';
-				$empty = false;
+				$public_table .= '<div class="link"><a href="/'.sanitize_input($row['name']).'">'.sanitize_input($row['name']).'</a>: '.strip_tags($row['description']).'</div>';
 			}
-			if ($empty) {
-				echo "<tr><td>This is a private URL shortening service.</td></tr>";
+			if ($public_table != '') {
+				echo '<div class="center"><hr>' . $public_table . '</div>';
 			}
-			echo '</div>';
 		}
     }
     echo render_footer();
