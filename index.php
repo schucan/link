@@ -29,7 +29,22 @@ if (isset($_GET['path'])) {
 }
 JSON;
 		exit;
+	} else if ($_GET['path'] === 'opensearch.xml') {
+		header('Content-Type: application/opensearchdescription+xml; charset=utf-8');
+		$host = $_SERVER['REQUEST_SCHEME'] . '://' . $_SERVER['HTTP_HOST'];
+		echo <<<XML
+<?xml version="1.0" encoding="UTF-8"?>
+<OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
+  <ShortName>Link</ShortName>
+  <Description>{$_SERVER['HTTP_HOST']} Links</Description>
+  <InputEncoding>UTF-8</InputEncoding>
+  <Image height="16" width="16" type="image/x-icon">{$host}/favicon.ico</Image>
+  <Url type="text/html" method="get" template="{$host}/{searchTerms}" />
+</OpenSearchDescription>
+XML;
+		exit;
 	}
+
 	// favicon
 	else if ($_GET['path'] == 'favicon.ico') {
 		header('Content-Type: image/x-icon');
@@ -378,6 +393,7 @@ function render_header() {
 	<meta name="viewport" content="width=device-width,initial-scale=1">
     <link rel="stylesheet" href="/style.css?$version" type="text/css" />
 	<link rel="icon" href="favicon.ico?$version" type="image/x-icon" />
+	<link rel="search" type="application/opensearchdescription+xml" title="Link" href="/opensearch.xml">
 </head>
 <body>
 <div class="header" id="indicator"><p>Link copied to clipboard</p></div>
