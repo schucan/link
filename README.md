@@ -11,13 +11,14 @@ Here are the reasons I couldn't use any other solutions:
     - The entire actual programming code is inside a single PHP file.
     - Links are kept locally in an SQLite Database.
 - Links can be configured to first show where they are going. If installed on `https://example.com`, then visiting `https://example.com/someLink` will first display a page showing the visitor the destination URL, and a "go!" button. "direct" links will still directly be redirected instead.
-- Visiting the root (`https://example.com` in the example above) without being logged in displays a list of all links with the `public` flag.
+- Visiting the root (`https://example.com` in the example above) without being logged in displays a list of all links with the `public` flag. There is also a form to enter the link's name (`someLink` in the example above) and hit `go!`.
 - visits are recorded in local CSV log files for further analysis if needed.
 - The page is a progressive web app (PWA): you can "save to homescreen" on your mobile to use it like a native app.
 - The bookmarklet uses the following GET URL parameters to pre-populate the form for a new link:
     - `name` for the link name (the shortcut)
     - `url` for the target URL
     - `description` for the description
+- OpenSearch: When on the page, the user can add it to the browser's search engines. Once added, the user can just enter the link name (e.g. `someLink`) and be taken to the link directly.
 
 ## Super Simple Installation
 
