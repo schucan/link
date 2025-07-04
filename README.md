@@ -18,7 +18,7 @@ Here are the reasons I couldn't use any other solutions:
     - `name` for the link name (the shortcut)
     - `url` for the target URL
     - `description` for the description
-- OpenSearch: When on the page, the user can add it to the browser's search engines. Once added, the user can just enter the link name (e.g. `someLink`) and be taken to the link directly.
+- [OpenSearch](https://en.wikipedia.org/wiki/OpenSearch_(specification)): When on the page, the user can add it to the browser's search engines. Once added, the user can just enter the link name (e.g. `someLink`) and be taken to the link directly.
 
 ## Super Simple Installation
 
