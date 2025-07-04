@@ -6,7 +6,7 @@ I have been looking for this all over the internet. All solutions were way too b
 
 ## Special features
 
-Here are the reasons I couldn't use any other solutions:
+Convenient features added over time:
 - Super super simple:
     - The entire actual programming code is inside a single PHP file.
     - Links are kept locally in an SQLite Database.
